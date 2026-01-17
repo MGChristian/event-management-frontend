@@ -28,6 +28,14 @@ class TicketService {
     return response.data;
   }
 
+  async getTicketsByEvent(
+    eventId: number,
+    config: AxiosRequestConfig = {},
+  ): Promise<ticket[]> {
+    const response = await this.axios.get(`/tickets/${eventId}`, config);
+    return response.data;
+  }
+
   async deleteTicket(
     ticketId: string,
     config: AxiosRequestConfig = {},

@@ -23,6 +23,7 @@ function EventDetails() {
   const [error, setError] = useState<string | null>(null);
   const [ticketLoading, setTicketLoading] = useState(false);
   const [ticketError, setTicketError] = useState<string | null>(null);
+  const [hasTicket, setHasTicket] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -55,10 +56,40 @@ function EventDetails() {
     };
   }, [eventId]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function checkExistingTicket() {
+      if (!auth || !eventId) return;
+
+      try {
+        const tickets = await ticketService.getMyTickets({
+          signal: controller.signal,
+        });
+        const alreadyHasTicket = tickets.some(
+          (ticket) => ticket.event.id === Number(eventId),
+        );
+        setHasTicket(alreadyHasTicket);
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          console.error("Error checking existing tickets:", err);
+        }
+      }
+    }
+
+    checkExistingTicket();
+
+    return () => {
+      controller.abort();
+    };
+  }, [auth, eventId]);
+
   async function handleGetTicket() {
     // If not logged in, redirect to login
     if (!auth) {
-      navigate("/login", { state: { from: { pathname: `/events/${eventId}` } } });
+      navigate("/login", {
+        state: { from: { pathname: `/events/${eventId}` } },
+      });
       return;
     }
 
@@ -109,6 +140,43 @@ function EventDetails() {
   const dateStart = dayjs(event.dateStart);
   const dateEnd = dayjs(event.dateEnd);
 
+  // Calculate availability
+  const ticketsSold = event.ticketsSold ?? 0;
+  const remainingSlots = event.capacity - ticketsSold;
+  const isSoldOut = remainingSlots <= 0;
+  const isLowStock = remainingSlots > 0 && remainingSlots < 10;
+  const isAdminOrOrganizer =
+    auth?.user?.role === "admin" || auth?.user?.role === "organizer";
+
+  // Determine button state
+  const shouldDisableButton =
+    ticketLoading || hasTicket || (isSoldOut && !isAdminOrOrganizer);
+
+  function getButtonText() {
+    if (hasTicket) return "Already Have Ticket";
+    if (isSoldOut) return "Sold Out";
+    if (ticketLoading) return "Getting Ticket...";
+    return "Get Ticket";
+  }
+
+  function getAvailabilityDisplay() {
+    if (isSoldOut) {
+      return { text: "Sold Out", className: "text-red-600" };
+    } else if (isLowStock) {
+      return {
+        text: `${remainingSlots} spots left`,
+        className: "text-orange-500",
+      };
+    } else {
+      return {
+        text: `${remainingSlots} spots left`,
+        className: "text-green-600",
+      };
+    }
+  }
+
+  const availability = getAvailabilityDisplay();
+
   return (
     <div className="min-h-screen pt-24 pb-12">
       <div className="mx-auto max-w-4xl px-6">
@@ -149,9 +217,7 @@ function EventDetails() {
             <div className="flex items-center gap-2">
               <Calendar size={20} className="text-orange-500" />
               <div>
-                <p className="font-medium">
-                  {dateStart.format("MMM D, YYYY")}
-                </p>
+                <p className="font-medium">{dateStart.format("MMM D, YYYY")}</p>
                 <p className="text-sm text-stone-400">
                   {dateStart.format("h:mm A")} - {dateEnd.format("h:mm A")}
                 </p>
@@ -165,7 +231,9 @@ function EventDetails() {
 
             <div className="flex items-center gap-2">
               <Users size={20} className="text-orange-500" />
-              <span>{event.capacity} spots available</span>
+              <span className={availability.className}>
+                {availability.text}
+              </span>
             </div>
           </div>
 
@@ -186,7 +254,9 @@ function EventDetails() {
             <p className="text-sm text-stone-500">Organized by</p>
             <p className="font-medium text-stone-700">{event.organizer.name}</p>
             {event.organizer.company && (
-              <p className="text-sm text-stone-500">{event.organizer.company}</p>
+              <p className="text-sm text-stone-500">
+                {event.organizer.company}
+              </p>
             )}
           </div>
 
@@ -197,14 +267,24 @@ function EventDetails() {
             </div>
           )}
 
+          {/* Sold Out Warning for Admin/Organizer */}
+          {isSoldOut && isAdminOrOrganizer && (
+            <div className="rounded-md border border-yellow-300 bg-yellow-50 px-4 py-3">
+              <p className="text-sm text-yellow-700">
+                ⚠️ This event is sold out, but you can still register as an
+                Admin/Organizer.
+              </p>
+            </div>
+          )}
+
           {/* Get Ticket Button */}
           <button
             onClick={handleGetTicket}
-            disabled={ticketLoading}
+            disabled={shouldDisableButton}
             className="flex items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-4 font-semibold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Ticket size={20} />
-            {ticketLoading ? "Getting Ticket..." : "Get Ticket"}
+            {getButtonText()}
           </button>
         </div>
       </div>

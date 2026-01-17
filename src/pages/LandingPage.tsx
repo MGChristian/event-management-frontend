@@ -20,7 +20,9 @@ function LandingPage() {
     async function fetchEvents() {
       setLoading(true);
       try {
-        const data = await eventService.getEvents({ signal: controller.signal });
+        const data = await eventService.getEvents({
+          signal: controller.signal,
+        });
         setEvents(data);
       } catch (err) {
         if (!controller.signal.aborted) {

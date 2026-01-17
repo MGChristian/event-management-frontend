@@ -7,8 +7,31 @@ type EventCardProps = {
   event: event;
 };
 
+function getAvailabilityDisplay(event: event) {
+  const ticketsSold = event.ticketsSold ?? 0;
+  const remainingSlots = event.capacity - ticketsSold;
+
+  if (remainingSlots <= 0) {
+    return {
+      text: "Sold Out",
+      className: "text-red-600 bg-red-50 border-red-200",
+    };
+  } else if (remainingSlots < 10) {
+    return {
+      text: `${remainingSlots} spots left`,
+      className: "text-orange-600 bg-orange-50 border-orange-200",
+    };
+  } else {
+    return {
+      text: `${remainingSlots} spots left`,
+      className: "text-green-600 bg-green-50 border-green-200",
+    };
+  }
+}
+
 function EventCard({ event }: EventCardProps) {
   const formattedDate = dayjs(event.dateStart).format("MMM D, YYYY • h:mm A");
+  const availability = getAvailabilityDisplay(event);
 
   return (
     <Link
@@ -31,8 +54,10 @@ function EventCard({ event }: EventCardProps) {
           </div>
         )}
         {/* Capacity Badge */}
-        <div className="absolute top-3 right-3 rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-stone-700">
-          {event.capacity} spots
+        <div
+          className={`absolute top-3 right-3 rounded-md border px-2 py-1 text-xs font-medium ${availability.className}`}
+        >
+          {availability.text}
         </div>
       </div>
 

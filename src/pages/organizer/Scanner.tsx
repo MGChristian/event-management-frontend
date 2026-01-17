@@ -80,13 +80,20 @@ function Scanner() {
                   onError={(error) => console.error("Scanner error:", error)}
                   styles={{
                     container: { width: "100%", height: "100%" },
-                    video: { width: "100%", height: "100%", objectFit: "cover" },
+                    video: {
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    },
                   }}
                 />
                 {/* Scan overlay */}
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <div className="flex flex-col items-center gap-4">
-                    <ScanLine size={48} className="animate-pulse text-orange-500" />
+                    <ScanLine
+                      size={48}
+                      className="animate-pulse text-orange-500"
+                    />
                     <p className="rounded-md bg-black/50 px-3 py-1 text-sm text-white">
                       Position QR code in frame
                     </p>
@@ -125,7 +132,9 @@ function Scanner() {
             <h3 className="font-medium text-stone-700">Instructions</h3>
             <ul className="mt-2 flex flex-col gap-1 text-sm text-stone-500">
               <li>• Point the camera at the attendee's QR code</li>
-              <li>• The scanner will automatically detect and verify the ticket</li>
+              <li>
+                • The scanner will automatically detect and verify the ticket
+              </li>
               <li>• Green screen = Entry granted</li>
               <li>• Red screen = Invalid or already used ticket</li>
             </ul>

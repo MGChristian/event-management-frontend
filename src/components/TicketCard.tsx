@@ -9,7 +9,9 @@ type TicketCardProps = {
 
 function TicketCard({ ticket }: TicketCardProps) {
   const isScanned = !!ticket.scanDate;
-  const eventDate = dayjs(ticket.event.dateStart).format("MMM D, YYYY • h:mm A");
+  const eventDate = dayjs(ticket.event.dateStart).format(
+    "MMM D, YYYY • h:mm A",
+  );
 
   return (
     <div className="flex w-full max-w-2xl overflow-hidden rounded-md border border-stone-200 bg-white">
@@ -61,7 +63,9 @@ function TicketCard({ ticket }: TicketCardProps) {
 
       {/* Right Section - QR Code */}
       <div className="flex w-36 flex-col items-center justify-center gap-2 bg-stone-50 p-4">
-        <div className={`rounded-md bg-white p-2 ${isScanned ? "opacity-30" : ""}`}>
+        <div
+          className={`rounded-md bg-white p-2 ${isScanned ? "opacity-30" : ""}`}
+        >
           <QRCode value={ticket.id} size={100} />
         </div>
         <span className="text-center text-xs text-stone-500">

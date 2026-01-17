@@ -8,6 +8,7 @@ export type event = {
   location: string;
   description?: string;
   capacity: number;
+  ticketsSold?: number;
   imageBase64?: string;
   createdAt: Date;
   organizer: user;
